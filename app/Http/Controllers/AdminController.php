@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Gallery;
+use App\Models\Contact;
 use App\Models\Room;
+use App\Models\Booking;
+use App\Notifications\MyFirstNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class AdminController extends Controller
 {
@@ -19,6 +24,8 @@ class AdminController extends Controller
             }
             else if($userType=='user'){
                 $data['room']=Room::all();
+                $data['gallery']=Gallery::all();
+
                 $data['header_title']='Hotel Management';
                 return view('home.index',$data);
 
@@ -30,6 +37,7 @@ class AdminController extends Controller
     public function home(){
         $data['header_title']="Hotel Management";
         $data['room']=Room::all();
+        $data['gallery']=Gallery::all();
         return view('home.index',$data);
     }
     public function create_room(){
@@ -100,4 +108,97 @@ class AdminController extends Controller
 
         return redirect('view_room')->with('success','Room Updated Successfully');
     }
+    public function bookings(){
+
+        $data['header_title']='Bookings';
+        $data['booking']=Booking::getBookings();
+        return view('admin.booking',$data);
+    }
+
+    public function bookings_delete($id){
+        $data=Booking::find($id);
+        $data->delete();
+
+        return redirect('bookings')->with('error','Data deleted successfully');
+    }
+
+    public function approve_booking($id){
+        $data=Booking::find($id);
+        $data->status='Approved';
+        $data->save();
+
+        return redirect()->back();
+    }
+    public function reject_booking($id){
+        $data=Booking::find($id);
+        $data->status='Rejected';
+        $data->save();
+
+        return redirect()->back();
+    }
+
+    public function view_gallery(){
+
+$data['header_title']='View Gallery';
+        $data['gallery']=Gallery::all();
+        return view('admin.gallery',$data);
+    }
+
+    public function upload_gallery(Request $request)
+    {
+        // Use file() method to get uploaded file
+        $image = $request->file('image');
+
+        if ($image) {
+            $data = new Gallery;
+            $imgName = time().'.'.$image->getClientOriginalExtension();
+            $image->move('gallery', $imgName);
+            $data->image = $imgName;
+            $data->save();
+            return redirect()->back()->with('success', 'Image uploaded successfully');
+        } else {
+            return redirect()->back()->with('error', 'No image uploaded');
+        }
+    }
+
+    public function delete_gallery($id){
+        $data=Gallery::find($id);
+        $data->delete();
+        return redirect()->back()->with('error', 'Image Deleted successfully');
+    }
+
+    public function message(){
+
+        $data['header_title']='All Messages';
+        $data['messages']=Contact::all();
+        return view('admin.message',$data);
+    }
+
+    public function send_mail($id){
+
+        $data['header_title']='Send Mail';
+        $data['message']=Contact::find($id);
+        return view('admin.send_mail',$data);
+    }
+
+    public function mail(Request $request,$id){
+        $data=Contact::find($id);
+        $details=[
+            'greeting'=>$request->greeting,
+            'mail_body'=>$request->mail_body,
+            'action_text'=>$request->action_text,
+            'action_url'=>$request->action_url,
+            'end_line'=>$request->end_line,
+
+
+        ];
+
+        Notification::send($data,new MyFirstNotification($details));
+
+        return redirect('message')->with('success','Mail has been sent successfully');
+
+
+    }
+
+
 }

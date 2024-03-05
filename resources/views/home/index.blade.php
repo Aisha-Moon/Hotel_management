@@ -11,7 +11,7 @@
       </div>
       <!-- end loader -->
       <!-- header -->
-    
+
          <!-- header inner -->
          @include('home.header')
 
@@ -43,5 +43,21 @@
       <!--  footer -->
       @include('home.footer')
 
+      <script type="text/javascript">
+         // Store scroll position in sessionStorage when scrolling
+         $(window).scroll(function () {
+             sessionStorage.setItem('scrollTop', $(this).scrollTop());
+         });
+
+         // Restore scroll position from sessionStorage when the document is ready
+         $(document).ready(function(){
+             var scrollTop = sessionStorage.getItem('scrollTop');
+             if (scrollTop !== null && !isNaN(scrollTop)) {
+                 $(window).scrollTop(parseInt(scrollTop));
+             }
+         });
+     </script>
+
+    </script>
    </body>
 </html>
